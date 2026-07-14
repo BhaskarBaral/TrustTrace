@@ -3,10 +3,11 @@ from sqlalchemy import text
 
 from database.connection import Base, engine
 from database import models
-from routes.piece_routes import router as piece_router
-from routes.user_routes import router as user_router
 from routes.event_routes import router as event_router
 from routes.inspection_routes import router as inspection_router
+from routes.passport_routes import router as passport_router
+from routes.piece_routes import router as piece_router
+from routes.user_routes import router as user_router
 
 
 # ---------------------------------------------------------
@@ -35,6 +36,7 @@ app.include_router(piece_router)
 app.include_router(user_router)
 app.include_router(event_router)
 app.include_router(inspection_router)
+app.include_router(passport_router)
 
 
 # ---------------------------------------------------------
