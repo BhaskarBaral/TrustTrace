@@ -3,6 +3,7 @@ from sqlalchemy import text
 
 from database.connection import Base, engine
 from database import models
+from routes.piece_routes import router as piece_router
 
 
 Base.metadata.create_all(bind=engine)
@@ -13,6 +14,9 @@ app = FastAPI(
     description="Backend API for the TrustTrace jewellery manufacturing prototype",
     version="1.0.0",
 )
+
+
+app.include_router(piece_router)
 
 
 @app.get("/")
