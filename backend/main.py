@@ -5,10 +5,19 @@ from database.connection import Base, engine
 from database import models
 from routes.piece_routes import router as piece_router
 from routes.user_routes import router as user_router
+from routes.event_routes import router as event_router
 
+
+# ---------------------------------------------------------
+# CREATE DATABASE TABLES
+# ---------------------------------------------------------
 
 Base.metadata.create_all(bind=engine)
 
+
+# ---------------------------------------------------------
+# FASTAPI APPLICATION
+# ---------------------------------------------------------
 
 app = FastAPI(
     title="TrustTrace API",
@@ -17,9 +26,18 @@ app = FastAPI(
 )
 
 
+# ---------------------------------------------------------
+# REGISTER API ROUTERS
+# ---------------------------------------------------------
+
 app.include_router(piece_router)
 app.include_router(user_router)
+app.include_router(event_router)
 
+
+# ---------------------------------------------------------
+# ROOT ENDPOINT
+# ---------------------------------------------------------
 
 @app.get("/")
 def root():
@@ -28,6 +46,10 @@ def root():
     }
 
 
+# ---------------------------------------------------------
+# APPLICATION HEALTH CHECK
+# ---------------------------------------------------------
+
 @app.get("/health")
 def health_check():
     return {
@@ -35,6 +57,10 @@ def health_check():
         "project": "TrustTrace"
     }
 
+
+# ---------------------------------------------------------
+# DATABASE HEALTH CHECK
+# ---------------------------------------------------------
 
 @app.get("/health/database")
 def database_health_check():
