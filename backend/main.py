@@ -4,6 +4,7 @@ from sqlalchemy import text
 from database.connection import Base, engine
 from database import models
 from routes.piece_routes import router as piece_router
+from routes.user_routes import router as user_router
 
 
 Base.metadata.create_all(bind=engine)
@@ -17,6 +18,7 @@ app = FastAPI(
 
 
 app.include_router(piece_router)
+app.include_router(user_router)
 
 
 @app.get("/")
