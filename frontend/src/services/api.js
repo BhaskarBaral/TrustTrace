@@ -133,6 +133,82 @@ export function createProductionEvent(eventData) {
 }
 
 
+
+// ---------------------------------------------------------
+// INSPECTION API
+// ---------------------------------------------------------
+
+export function getInspections() {
+  return apiRequest("/api/inspections");
+}
+
+
+// ---------------------------------------------------------
+// CREATE INSPECTION WITH IMAGE UPLOAD
+// ---------------------------------------------------------
+
+export function createInspection(inspectionData) {
+
+  // -------------------------------------------------------
+  // BUILD MULTIPART FORM DATA
+  // -------------------------------------------------------
+
+  const formData = new FormData();
+
+  formData.append(
+    "piece_id",
+    inspectionData.piece_id
+  );
+
+  formData.append(
+    "inspector_id",
+    inspectionData.inspector_id
+  );
+
+  formData.append(
+    "image",
+    inspectionData.image
+  );
+
+
+  // -------------------------------------------------------
+  // SEND IMAGE UPLOAD REQUEST
+  // -------------------------------------------------------
+
+  return apiRequest(
+    "/api/inspections",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+}
+
+
+// ---------------------------------------------------------
+// BUILD BACKEND FILE URL
+// ---------------------------------------------------------
+
+export function getBackendFileUrl(filePath) {
+  if (!filePath) {
+    return "";
+  }
+
+  const normalizedPath = filePath.replace(/\\/g, "/");
+
+  return `${API_BASE_URL}/${normalizedPath}`;
+}
+
+// ---------------------------------------------------------
+// DIGITAL PIECE PASSPORT API
+// ---------------------------------------------------------
+
+export function getPiecePassport(pieceId) {
+  return apiRequest(
+    `/api/passport/${pieceId}`
+  );
+}
+
 // ---------------------------------------------------------
 // EXPORT BACKEND BASE URL
 // ---------------------------------------------------------

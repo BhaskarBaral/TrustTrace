@@ -448,6 +448,503 @@ a {
   white-space: nowrap;
 }
 
+
+
+/* ---------------------------------------------------------
+   INSPECTION FORM
+--------------------------------------------------------- */
+
+.inspection-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.inspection-file-group {
+  grid-column: 1 / -1;
+}
+
+.inspection-file-group input[type="file"] {
+  padding: 10px;
+
+  background: #ffffff;
+}
+
+
+/* ---------------------------------------------------------
+   INSPECTION PREVIEW
+--------------------------------------------------------- */
+
+.inspection-preview {
+  grid-column: 1 / -1;
+
+  padding: 18px;
+
+  background: #f7f9fc;
+  border: 1px solid #e1e6ee;
+  border-radius: 10px;
+}
+
+.inspection-preview-label {
+  margin: 0 0 12px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #3d485a;
+}
+
+.inspection-preview img {
+  display: block;
+
+  width: 100%;
+  max-width: 420px;
+  max-height: 320px;
+
+  object-fit: contain;
+
+  background: #ffffff;
+  border: 1px solid #e1e6ee;
+  border-radius: 8px;
+}
+
+
+/* ---------------------------------------------------------
+   INSPECTION SUBMIT
+--------------------------------------------------------- */
+
+.inspection-submit {
+  grid-column: 1 / -1;
+}
+
+.inspection-submit .primary-button {
+  width: 100%;
+}
+
+
+/* ---------------------------------------------------------
+   INSPECTION GRID
+--------------------------------------------------------- */
+
+.inspection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+
+/* ---------------------------------------------------------
+   INSPECTION CARD
+--------------------------------------------------------- */
+
+.inspection-card {
+  overflow: hidden;
+
+  background: #ffffff;
+  border: 1px solid #e1e6ee;
+  border-radius: 12px;
+}
+
+
+/* ---------------------------------------------------------
+   INSPECTION IMAGE
+--------------------------------------------------------- */
+
+.inspection-image-container {
+  height: 240px;
+
+  background: #f5f7fa;
+  border-bottom: 1px solid #e1e6ee;
+}
+
+.inspection-image-container img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+}
+
+
+/* ---------------------------------------------------------
+   INSPECTION CARD CONTENT
+--------------------------------------------------------- */
+
+.inspection-card-content {
+  padding: 20px;
+}
+
+.inspection-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.inspection-piece-id {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 800;
+
+  color: #172033;
+}
+
+.inspection-inspector {
+  margin: 5px 0 0;
+
+  font-size: 13px;
+
+  color: #687386;
+}
+
+
+/* ---------------------------------------------------------
+   INSPECTION STATUS
+--------------------------------------------------------- */
+
+.inspection-status {
+  flex-shrink: 0;
+
+  padding: 6px 10px;
+
+  background: #fff7e8;
+  border-radius: 20px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  color: #9a6a18;
+
+  white-space: nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   INSPECTION RESULTS
+--------------------------------------------------------- */
+
+.inspection-results {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+.inspection-result {
+  padding: 12px;
+
+  background: #f7f9fc;
+  border-radius: 8px;
+}
+
+.inspection-result span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  color: #7a8495;
+}
+
+.inspection-result strong {
+  font-size: 13px;
+
+  color: #172033;
+}
+
+
+/* ---------------------------------------------------------
+   INSPECTION TIMESTAMP
+--------------------------------------------------------- */
+
+.inspection-timestamp {
+  margin: 18px 0 0;
+
+  font-size: 12px;
+
+  color: #8a93a2;
+}
+
+
+/* ---------------------------------------------------------
+   PASSPORT SEARCH
+--------------------------------------------------------- */
+
+.passport-search-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 18px;
+}
+
+
+/* ---------------------------------------------------------
+   PASSPORT CONTAINER
+--------------------------------------------------------- */
+
+.passport-container {
+  overflow: hidden;
+
+  background: #ffffff;
+  border: 1px solid #e1e6ee;
+  border-radius: 14px;
+}
+
+
+/* ---------------------------------------------------------
+   PASSPORT HEADER
+--------------------------------------------------------- */
+
+.passport-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+
+  padding: 28px;
+
+  background: #172033;
+
+  color: #ffffff;
+}
+
+.passport-label {
+  margin: 0 0 8px;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  letter-spacing: 1.5px;
+
+  color: #aeb8c8;
+}
+
+.passport-header h2 {
+  margin: 0;
+
+  font-size: 30px;
+
+  color: #ffffff;
+}
+
+.passport-header p {
+  margin: 8px 0 0;
+
+  color: #c5ccd8;
+}
+
+
+/* ---------------------------------------------------------
+   PASSPORT SECTIONS
+--------------------------------------------------------- */
+
+.passport-section {
+  padding: 28px;
+
+  border-bottom: 1px solid #e1e6ee;
+}
+
+.passport-section:last-child {
+  border-bottom: none;
+}
+
+
+/* ---------------------------------------------------------
+   PASSPORT PIECE DETAILS
+--------------------------------------------------------- */
+
+.passport-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.passport-detail {
+  padding: 16px;
+
+  background: #f7f9fc;
+  border-radius: 9px;
+}
+
+.passport-detail span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  color: #7a8495;
+}
+
+.passport-detail strong {
+  font-size: 14px;
+
+  color: #172033;
+}
+
+
+/* ---------------------------------------------------------
+   PASSPORT INSPECTION GRID
+--------------------------------------------------------- */
+
+.passport-inspection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+
+/* ---------------------------------------------------------
+   PASSPORT INSPECTION CARD
+--------------------------------------------------------- */
+
+.passport-inspection-card {
+  overflow: hidden;
+
+  border: 1px solid #e1e6ee;
+  border-radius: 10px;
+}
+
+.passport-inspection-image {
+  height: 220px;
+
+  background: #f5f7fa;
+  border-bottom: 1px solid #e1e6ee;
+}
+
+.passport-inspection-image img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+}
+
+.passport-inspection-content {
+  padding: 18px;
+}
+
+.passport-inspection-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.passport-inspection-header p {
+  margin: 0 0 4px;
+
+  font-size: 11px;
+
+  color: #7a8495;
+}
+
+.passport-inspection-header strong {
+  color: #172033;
+}
+
+
+/* ---------------------------------------------------------
+   PASSPORT INSPECTION RESULTS
+--------------------------------------------------------- */
+
+.passport-inspection-results {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+
+  margin-top: 18px;
+}
+
+.passport-inspection-results div {
+  padding: 11px;
+
+  background: #f7f9fc;
+  border-radius: 8px;
+}
+
+.passport-inspection-results span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  color: #7a8495;
+}
+
+.passport-inspection-results strong {
+  font-size: 12px;
+
+  color: #172033;
+}
+
+
+/* ---------------------------------------------------------
+   DASHBOARD OVERVIEW
+--------------------------------------------------------- */
+
+.dashboard-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  margin-bottom: 24px;
+}
+
+
+/* ---------------------------------------------------------
+   DASHBOARD STATISTICS
+--------------------------------------------------------- */
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.dashboard-stat-card {
+  padding: 22px;
+
+  background: #ffffff;
+  border: 1px solid #e1e6ee;
+  border-radius: 12px;
+}
+
+.dashboard-stat-card p {
+  margin: 0;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: #687386;
+}
+
+.dashboard-stat-card strong {
+  display: block;
+
+  margin-top: 12px;
+
+  font-size: 32px;
+  font-weight: 800;
+
+  color: #172033;
+}
+
+.dashboard-stat-card span {
+  display: block;
+
+  margin-top: 7px;
+
+  font-size: 11px;
+
+  color: #8a93a2;
+}
+
 /* ---------------------------------------------------------
    RESPONSIVE DESIGN
 --------------------------------------------------------- */
@@ -490,6 +987,57 @@ a {
   .production-notes,
   .production-submit {
     grid-column: auto;
+  }
+
+  .inspection-form {
+    grid-template-columns: 1fr;
+  }
+
+  .inspection-file-group,
+  .inspection-preview,
+  .inspection-submit {
+    grid-column: auto;
+  }
+
+  .inspection-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inspection-results {
+    grid-template-columns: 1fr;
+  }
+
+  .inspection-card-header {
+    flex-direction: column;
+  }
+
+  .passport-search-form {
+    grid-template-columns: 1fr;
+  }
+
+  .passport-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .passport-inspection-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .passport-inspection-results {
+    grid-template-columns: 1fr;
+  }
+
+  .passport-header,
+  .passport-inspection-header {
+    flex-direction: column;
+  }
+
+    /* -------------------------------------------------------
+     DASHBOARD RESPONSIVE
+  ------------------------------------------------------- */
+
+  .dashboard-stats {
+    grid-template-columns: 1fr;
   }
 
 }
