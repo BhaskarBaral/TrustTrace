@@ -1,4 +1,8 @@
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from database.connection import Base, engine
@@ -18,6 +22,18 @@ Base.metadata.create_all(bind=engine)
 
 
 # ---------------------------------------------------------
+# UPLOAD DIRECTORY CONFIGURATION
+# ---------------------------------------------------------
+
+UPLOAD_DIRECTORY = Path("uploads")
+
+UPLOAD_DIRECTORY.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+
+# ---------------------------------------------------------
 # FASTAPI APPLICATION
 # ---------------------------------------------------------
 
@@ -25,6 +41,35 @@ app = FastAPI(
     title="TrustTrace API",
     description="Backend API for the TrustTrace jewellery manufacturing prototype",
     version="1.0.0",
+)
+
+
+# ---------------------------------------------------------
+# CORS CONFIGURATION
+# ---------------------------------------------------------
+
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ---------------------------------------------------------
+# SERVE UPLOADED FILES
+# ---------------------------------------------------------
+
+app.mount(
+    "/uploads",
+    StaticFiles(directory=str(UPLOAD_DIRECTORY)),
+    name="uploads"
 )
 
 
