@@ -116,94 +116,85 @@ export function getQualityGates() {
   return apiRequest("/api/quality/gates");
 }
 
-export function getPieceQualityGates(pieceId) {
-  return apiRequest(`/api/quality/gates/piece/${pieceId}`);
+
+
+// ---------------------------------------------------------
+// INSPECTION API
+// ---------------------------------------------------------
+
+export function getInspections() {
+  return apiRequest("/api/inspections");
 }
 
-export function getQualitySummary(stage) {
-  return apiRequest(`/api/quality/summary${stage || ""}`);
+
+// ---------------------------------------------------------
+// CREATE INSPECTION WITH IMAGE UPLOAD
+// ---------------------------------------------------------
+
+export function createInspection(inspectionData) {
+
+  // -------------------------------------------------------
+  // BUILD MULTIPART FORM DATA
+  // -------------------------------------------------------
+
+  const formData = new FormData();
+
+  formData.append(
+    "piece_id",
+    inspectionData.piece_id
+  );
+
+  formData.append(
+    "inspector_id",
+    inspectionData.inspector_id
+  );
+
+  formData.append(
+    "image",
+    inspectionData.image
+  );
+
+
+  // -------------------------------------------------------
+  // SEND IMAGE UPLOAD REQUEST
+  // -------------------------------------------------------
+
+  return apiRequest(
+    "/api/inspections",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
 }
 
-export function reviewQualityGate(gateId, verdict, reviewerId) {
-  return apiRequest(`/api/quality/gates/${gateId}/review`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ verdict, reviewer_id: reviewerId }),
-  });
+
+// ---------------------------------------------------------
+// BUILD BACKEND FILE URL
+// ---------------------------------------------------------
+
+export function getBackendFileUrl(filePath) {
+  if (!filePath) {
+    return "";
+  }
+
+  const normalizedPath = filePath.replace(/\\/g, "/");
+
+  return `${API_BASE_URL}/${normalizedPath}`;
 }
 
-// Passport
+// ---------------------------------------------------------
+// DIGITAL PIECE PASSPORT API
+// ---------------------------------------------------------
+
 export function getPiecePassport(pieceId) {
-  return apiRequest(`/api/passport/${pieceId}`);
+  return apiRequest(
+    `/api/passport/${pieceId}`
+  );
 }
 
-export function getComplianceReport(pieceId) {
-  return apiRequest(`/api/passport/${pieceId}/compliance`);
-}
-
-// Batches
-export function createBatch(batchData) {
-  return apiRequest("/api/batches", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(batchData),
-  });
-}
-
-export function generatePieces(batchId) {
-  return apiRequest(`/api/batches/${batchId}/pieces`, { method: "POST" });
-}
-
-export function getBatches() {
-  return apiRequest("/api/batches");
-}
-
-export function getBatch(batchId) {
-  return apiRequest(`/api/batches/${batchId}`);
-}
-
-// Weights
-export function getPieceWeights(pieceId) {
-  return apiRequest(`/api/weights/piece/${pieceId}`);
-}
-
-export function getStageWeights(stage) {
-  return apiRequest(`/api/weights/stage/${stage}`);
-}
-
-export function getGoldReconciliation() {
-  return apiRequest("/api/weights/reconciliation");
-}
-
-// Analytics
-export function getWipStatus() {
-  return apiRequest("/api/analytics/wip");
-}
-
-export function getQualityAnalytics(stage) {
-  const query = stage ? `?stage=${encodeURIComponent(stage)}` : "";
-  return apiRequest(`/api/analytics/quality${query}`);
-}
-
-export function getGoldReconciliationAnalytics() {
-  return apiRequest("/api/analytics/gold-reconciliation");
-}
-
-export function getProductionInsights() {
-  return apiRequest("/api/analytics/insights");
-}
-
-export function getOperatorAnalytics(operatorId) {
-  return apiRequest(`/api/analytics/operator/${operatorId}`);
-}
-
-// Auth
-export function login(email, password) {
-  return apiRequest("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-}
+// ---------------------------------------------------------
+// EXPORT BACKEND BASE URL
+// ---------------------------------------------------------
 
 export { API_BASE_URL };

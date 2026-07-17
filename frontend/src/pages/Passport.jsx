@@ -55,9 +55,20 @@ function Passport() {
   }
 
   return (
+
     <section className="page">
+
+
+      {/* --------------------------------------------------
+          PAGE HEADER
+      -------------------------------------------------- */}
+
       <div className="page-header">
-        <p className="page-label">DIGITAL TRACEABILITY</p>
+
+        <p className="page-label">
+          TRACEABILITY RECORD
+        </p>
+
         <h1>Digital Piece Passport</h1>
         <p>Search for any jewellery piece and view its complete traceability history, weight logs, quality gates, and export EU compliance reports.</p>
       </div>
@@ -371,7 +382,9 @@ function Passport() {
         </div>
       )}
     </section>
+
   );
+
 }
 
 export default Passport;

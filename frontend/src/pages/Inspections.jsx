@@ -135,9 +135,20 @@ function Inspections() {
   if (loading) return <section className="page"><div className="state-message">Loading inspections...</div></section>;
 
   return (
+
     <section className="page">
+
+
+      {/* --------------------------------------------------
+          PAGE HEADER
+      -------------------------------------------------- */}
+
       <div className="page-header">
-        <p className="page-label">QUALITY CONTROL</p>
+
+        <p className="page-label">
+          QUALITY CONTROL
+        </p>
+
         <h1>Quality Inspections</h1>
         <p>Upload inspection images to AI quality gates and review flagged pieces.</p>
       </div>
@@ -311,7 +322,9 @@ function Inspections() {
         </div>
       )}
     </section>
+
   );
+
 }
 
 export default Inspections;
