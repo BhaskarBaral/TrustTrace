@@ -9,6 +9,8 @@ class EventCreate(BaseModel):
     operator_id: str
     stage: str
     event_type: str
+    weight_in: float | None = None
+    weight_out: float | None = None
     notes: str | None = None
 
 
@@ -20,5 +22,7 @@ class EventResponse(BaseModel):
     operator_id: str
     stage: str
     event_type: str
+    weight_in: float | None
+    weight_out: float | None
     notes: str | None
     timestamp: datetime

@@ -124,6 +124,15 @@ function Sidebar() {
           Digital Passport
         </NavLink>
 
+        <NavLink
+          to="/analytics"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          Analytics
+        </NavLink>
+
       </nav>
 
 

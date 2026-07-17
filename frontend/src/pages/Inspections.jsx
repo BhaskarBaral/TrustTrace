@@ -1,356 +1,138 @@
 import { useEffect, useState } from "react";
-
 import {
-  createInspection,
-  getBackendFileUrl,
-  getInspections,
   getPieces,
+  getPieceQualityGates,
+  getQualityGates,
   getUsers,
+  reviewQualityGate,
+  submitQualityGate,
 } from "../services/api";
 
-
-// ---------------------------------------------------------
-// INSPECTIONS PAGE
-// ---------------------------------------------------------
-
 function Inspections() {
-
-  // -------------------------------------------------------
-  // BACKEND DATA STATE
-  // -------------------------------------------------------
-
+  const [gates, setGates] = useState([]);
   const [pieces, setPieces] = useState([]);
   const [users, setUsers] = useState([]);
-  const [inspections, setInspections] = useState([]);
-
-
-  // -------------------------------------------------------
-  // PAGE STATE
-  // -------------------------------------------------------
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-
-  // -------------------------------------------------------
-  // INSPECTION FORM STATE
-  // -------------------------------------------------------
-
   const [formData, setFormData] = useState({
     piece_id: "",
+    stage: "",
     inspector_id: "",
-    image: null,
   });
-
-  const [imagePreview, setImagePreview] = useState("");
-
+  const [imageFile, setImageFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const [reviewGateId, setReviewGateId] = useState(null);
+  const [reviewVerdict, setReviewVerdict] = useState("PASS");
+  const [reviewerId, setReviewerId] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
-  // -------------------------------------------------------
-  // LOAD INSPECTION PAGE DATA
-  // -------------------------------------------------------
+  const [filterPieceId, setFilterPieceId] = useState("");
 
   useEffect(() => {
-
-    async function loadInspectionData() {
-
+    async function load() {
       try {
-
         setLoading(true);
-        setError("");
-
-
-        // -------------------------------------------------
-        // LOAD PIECES, USERS AND INSPECTIONS TOGETHER
-        // -------------------------------------------------
-
-        const [
-          pieceData,
-          userData,
-          inspectionData,
-        ] = await Promise.all([
+        const [gateData, pieceData, userData] = await Promise.all([
+          getQualityGates(),
           getPieces(),
           getUsers(),
-          getInspections(),
         ]);
-
-
+        setGates(gateData);
         setPieces(pieceData);
         setUsers(userData);
-        setInspections(inspectionData);
-
-      } catch (error) {
-
-        console.error(
-          "Failed to load inspection data:",
-          error
-        );
-
-        setError(error.message);
-
+      } catch (e) {
+        setError(e.message);
       } finally {
-
         setLoading(false);
-
       }
-
     }
-
-
-    loadInspectionData();
-
+    load();
   }, []);
 
-
-  // -------------------------------------------------------
-  // FILTER INSPECTOR USERS
-  // -------------------------------------------------------
-
-  const inspectors = users.filter(
-    (user) => user.role === "inspector"
-  );
-
-
-  // -------------------------------------------------------
-  // HANDLE SELECT INPUT
-  // -------------------------------------------------------
-
-  function handleInputChange(event) {
-
-    const { name, value } = event.target;
-
-
-    setFormData((currentFormData) => ({
-      ...currentFormData,
-      [name]: value,
-    }));
-
+  function handleInputChange(e) {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
-
-  // -------------------------------------------------------
-  // HANDLE IMAGE SELECTION
-  // -------------------------------------------------------
-
-  function handleImageChange(event) {
-
-    const selectedFile = event.target.files[0];
-
-
-    // -----------------------------------------------------
-    // NO IMAGE SELECTED
-    // -----------------------------------------------------
-
-    if (!selectedFile) {
-
-      setFormData((currentFormData) => ({
-        ...currentFormData,
-        image: null,
-      }));
-
-      setImagePreview("");
-
-      return;
-
-    }
-
-
-    // -----------------------------------------------------
-    // VALIDATE IMAGE TYPE
-    // -----------------------------------------------------
-
-    if (!selectedFile.type.startsWith("image/")) {
-
-      setFormError(
-        "Please select a valid image file."
-      );
-
-      event.target.value = "";
-
-      return;
-
-    }
-
-
-    // -----------------------------------------------------
-    // SAVE IMAGE FILE
-    // -----------------------------------------------------
-
-    setFormData((currentFormData) => ({
-      ...currentFormData,
-      image: selectedFile,
-    }));
-
-
-    // -----------------------------------------------------
-    // CREATE LOCAL IMAGE PREVIEW
-    // -----------------------------------------------------
-
-    const previewUrl =
-      URL.createObjectURL(selectedFile);
-
-    setImagePreview(previewUrl);
-
-    setFormError("");
-
+  function handleFileChange(e) {
+    setImageFile(e.target.files[0]);
   }
 
-
-  // -------------------------------------------------------
-  // CREATE NEW INSPECTION
-  // -------------------------------------------------------
-
-  async function handleSubmit(event) {
-
-    event.preventDefault();
-
-
-    // -----------------------------------------------------
-    // VERIFY IMAGE EXISTS
-    // -----------------------------------------------------
-
-    if (!formData.image) {
-
-      setFormError(
-        "Please select an inspection image."
-      );
-
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!imageFile) {
+      setFormError("Please select an image to upload.");
       return;
-
     }
-
-
     try {
-
       setSubmitting(true);
       setFormError("");
-      setSuccessMessage("");
-
-
-      // ---------------------------------------------------
-      // SEND INSPECTION TO BACKEND
-      // ---------------------------------------------------
-
-      const newInspection =
-        await createInspection(formData);
-
-
-      // ---------------------------------------------------
-      // ADD NEW INSPECTION TO CURRENT LIST
-      // ---------------------------------------------------
-
-      setInspections((currentInspections) => [
-        ...currentInspections,
-        newInspection,
-      ]);
-
-
-      // ---------------------------------------------------
-      // CLEAN LOCAL PREVIEW URL
-      // ---------------------------------------------------
-
-      if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
-      }
-
-
-      // ---------------------------------------------------
-      // RESET FORM
-      // ---------------------------------------------------
-
-      setFormData({
-        piece_id: "",
-        inspector_id: "",
-        image: null,
-      });
-
-      setImagePreview("");
-
-
-      // ---------------------------------------------------
-      // RESET FILE INPUT
-      // ---------------------------------------------------
-
-      const fileInput =
-        document.getElementById("inspection-image");
-
-      if (fileInput) {
-        fileInput.value = "";
-      }
-
-
-      // ---------------------------------------------------
-      // SHOW SUCCESS MESSAGE
-      // ---------------------------------------------------
-
-      setSuccessMessage(
-        `Inspection created for ${newInspection.piece_id}.`
+      const newGate = await submitQualityGate(
+        formData.piece_id,
+        formData.stage,
+        formData.inspector_id,
+        imageFile,
       );
-
-    } catch (error) {
-
-      console.error(
-        "Failed to create inspection:",
-        error
-      );
-
-      setFormError(error.message);
-
+      setGates((prev) => [newGate, ...prev]);
+      setFormData({ piece_id: "", stage: "", inspector_id: "" });
+      setImageFile(null);
+      setSuccessMessage(`Inspection recorded. AI verdict: ${newGate.ai_verdict}${newGate.defect_type ? ` (${newGate.defect_type})` : ""}`);
+    } catch (e) {
+      setFormError(e.message);
     } finally {
-
       setSubmitting(false);
-
     }
-
   }
 
-
-  // -------------------------------------------------------
-  // FORMAT CONFIDENCE VALUE
-  // -------------------------------------------------------
-
-  function formatConfidence(confidence) {
-
-    if (
-      confidence === null ||
-      confidence === undefined
-    ) {
-      return "—";
+  async function handleReviewSubmit() {
+    if (!reviewVerdict || !reviewerId) return;
+    try {
+      setReviewSubmitting(true);
+      const updatedGate = await reviewQualityGate(reviewGateId, reviewVerdict, reviewerId);
+      setGates((prev) =>
+        prev.map((g) => (g.id === updatedGate.id ? updatedGate : g))
+      );
+      setReviewGateId(null);
+    } catch (e) {
+      setFormError(e.message);
+    } finally {
+      setReviewSubmitting(false);
     }
-
-
-    // -----------------------------------------------------
-    // SUPPORT 0-1 AND 0-100 CONFIDENCE FORMATS
-    // -----------------------------------------------------
-
-    const confidenceValue =
-      confidence <= 1
-        ? confidence * 100
-        : confidence;
-
-
-    return `${confidenceValue.toFixed(1)}%`;
-
   }
 
-
-  // -------------------------------------------------------
-  // FORMAT TIMESTAMP
-  // -------------------------------------------------------
-
-  function formatTimestamp(timestamp) {
-
-    return new Date(timestamp).toLocaleString();
-
+  async function loadPieceGates() {
+    if (!filterPieceId) return;
+    try {
+      const pieceGates = await getPieceQualityGates(filterPieceId);
+      setGates(pieceGates);
+    } catch (e) {
+      setError(e.message);
+    }
   }
 
+  function verdictBadge(verdict) {
+    const styles = {
+      PASS: { bg: "#edf7f1", color: "#287a50" },
+      FLAG: { bg: "#fef9ee", color: "#b8891d" },
+      FAIL: { bg: "#fff5f5", color: "#b14343" },
+      PENDING: { bg: "#eef2f8", color: "#52627a" },
+    };
+    const s = styles[verdict] || styles.PENDING;
+    return (
+      <span
+        className="role-badge"
+        style={{ background: s.bg, color: s.color }}
+      >
+        {verdict}
+      </span>
+    );
+  }
 
-  // -------------------------------------------------------
-  // PAGE UI
-  // -------------------------------------------------------
+  if (loading) return <section className="page"><div className="state-message">Loading inspections...</div></section>;
 
   return (
 
@@ -368,471 +150,177 @@ function Inspections() {
         </p>
 
         <h1>Quality Inspections</h1>
-
-        <p>
-          Upload jewellery inspection images and track
-          quality analysis results.
-        </p>
-
+        <p>Upload inspection images to AI quality gates and review flagged pieces.</p>
       </div>
 
-
-      {/* --------------------------------------------------
-          CREATE INSPECTION SECTION
-      -------------------------------------------------- */}
-
+      {/* Submit Inspection */}
       <div className="content-section">
-
         <div className="section-header">
-
           <div>
-
-            <h2>New Inspection</h2>
-
-            <p>
-              Select a jewellery piece and inspector,
-              then upload an image for quality analysis.
-            </p>
-
+            <h2>Submit Inspection</h2>
+            <p>Select a piece, stage, and inspector, then upload an image for AI quality analysis.</p>
           </div>
-
         </div>
 
-
-        {/* ------------------------------------------------
-            INSPECTION FORM
-        ------------------------------------------------ */}
-
-        <form
-          className="inspection-form"
-          onSubmit={handleSubmit}
-        >
-
-
-          {/* ------------------------------------------------
-              PIECE SELECTION
-          ------------------------------------------------ */}
+        <form onSubmit={handleSubmit} className="production-form">
+          <div className="form-group">
+            <label htmlFor="piece_id">Piece</label>
+            <select id="piece_id" name="piece_id" value={formData.piece_id} onChange={handleInputChange} required>
+              <option value="">Select a piece</option>
+              {pieces.map((p) => (
+                <option key={p.id} value={p.piece_id}>{p.piece_id} — {p.product_type}</option>
+              ))}
+            </select>
+          </div>
 
           <div className="form-group">
-
-            <label htmlFor="piece_id">
-              Jewellery Piece
-            </label>
-
-            <select
-              id="piece_id"
-              name="piece_id"
-              value={formData.piece_id}
-              onChange={handleInputChange}
-              required
-            >
-
-              <option value="">
-                Select a piece
-              </option>
-
-
-              {pieces.map((piece) => (
-
-                <option
-                  key={piece.id}
-                  value={piece.piece_id}
-                >
-                  {piece.piece_id} — {piece.product_type}
-                </option>
-
-              ))}
-
+            <label htmlFor="stage">Checkpoint</label>
+            <select id="stage" name="stage" value={formData.stage} onChange={handleInputChange} required>
+              <option value="">Select checkpoint</option>
+              <option value="casting">Post-Casting</option>
+              <option value="stone-setting">Post-Stone Setting</option>
+              <option value="polishing">Post-Polishing</option>
+              <option value="plating">Post-Plating</option>
             </select>
-
           </div>
-
-
-          {/* ------------------------------------------------
-              INSPECTOR SELECTION
-          ------------------------------------------------ */}
 
           <div className="form-group">
-
-            <label htmlFor="inspector_id">
-              Inspector
-            </label>
-
-            <select
-              id="inspector_id"
-              name="inspector_id"
-              value={formData.inspector_id}
-              onChange={handleInputChange}
-              required
-            >
-
-              <option value="">
-                Select an inspector
-              </option>
-
-
-              {inspectors.map((user) => (
-
-                <option
-                  key={user.id}
-                  value={user.operator_id}
-                >
-                  {user.operator_id} — {user.name}
-                </option>
-
+            <label htmlFor="inspector_id">Inspector</label>
+            <select id="inspector_id" name="inspector_id" value={formData.inspector_id} onChange={handleInputChange} required>
+              <option value="">Select inspector</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.operator_id}>{u.operator_id} — {u.name}</option>
               ))}
-
             </select>
-
           </div>
 
-
-          {/* ------------------------------------------------
-              IMAGE FILE INPUT
-          ------------------------------------------------ */}
-
-          <div className="form-group inspection-file-group">
-
-            <label htmlFor="inspection-image">
-              Inspection Image
-            </label>
-
-            <input
-              id="inspection-image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              required
-            />
-
+          <div className="form-group">
+            <label htmlFor="image">Inspection Image</label>
+            <input id="image" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} required />
           </div>
 
-
-          {/* ------------------------------------------------
-              IMAGE PREVIEW
-          ------------------------------------------------ */}
-
-          {imagePreview && (
-
-            <div className="inspection-preview">
-
-              <p className="inspection-preview-label">
-                Image Preview
-              </p>
-
-              <img
-                src={imagePreview}
-                alt="Selected inspection preview"
-              />
-
-            </div>
-
-          )}
-
-
-          {/* ------------------------------------------------
-              SUBMIT BUTTON
-          ------------------------------------------------ */}
-
-          <div className="inspection-submit">
-
-            <button
-              className="primary-button"
-              type="submit"
-              disabled={
-                submitting ||
-                loading ||
-                pieces.length === 0 ||
-                inspectors.length === 0
-              }
-            >
-
-              {submitting
-                ? "Uploading..."
-                : "Upload Inspection"}
-
+          <div className="production-submit">
+            <button className="primary-button" type="submit" disabled={submitting || pieces.length === 0}>
+              {submitting ? "Analyzing..." : "Submit for AI Inspection"}
             </button>
-
           </div>
-
         </form>
 
-
-        {/* ------------------------------------------------
-            NO INSPECTOR WARNING
-        ------------------------------------------------ */}
-
-        {!loading &&
-          inspectors.length === 0 && (
-
-            <div className="form-message form-error">
-
-              No inspector account is available.
-              Register a user with the Inspector role
-              from the Dashboard first.
-
-            </div>
-
-          )}
-
-
-        {/* ------------------------------------------------
-            FORM ERROR
-        ------------------------------------------------ */}
-
-        {formError && (
-
-          <div className="form-message form-error">
-            {formError}
-          </div>
-
-        )}
-
-
-        {/* ------------------------------------------------
-            FORM SUCCESS
-        ------------------------------------------------ */}
-
-        {successMessage && (
-
-          <div className="form-message form-success">
-            {successMessage}
-          </div>
-
-        )}
-
+        {formError && <div className="form-message form-error">{formError}</div>}
+        {successMessage && <div className="form-message form-success">{successMessage}</div>}
       </div>
 
-
-      {/* --------------------------------------------------
-          INSPECTION HISTORY
-      -------------------------------------------------- */}
-
+      {/* Inspection History */}
       <div className="content-section">
-
         <div className="section-header">
-
           <div>
-
             <h2>Inspection History</h2>
-
-            <p>
-              Uploaded inspection images and their
-              quality analysis status.
-            </p>
-
+            <p>All quality gate submissions with AI verdicts and human review status.</p>
           </div>
-
-
-          <div className="record-count">
-
-            {inspections.length}{" "}
-
-            {inspections.length === 1
-              ? "Inspection"
-              : "Inspections"}
-
-          </div>
-
+          <div className="record-count">{gates.length} {gates.length === 1 ? "Gate" : "Gates"}</div>
         </div>
 
-
-        {/* ------------------------------------------------
-            LOADING STATE
-        ------------------------------------------------ */}
-
-        {loading && (
-
-          <div className="state-message">
-            Loading inspections...
+        <div style={{ display: "flex", gap: "12px", marginBottom: "18px", alignItems: "end" }}>
+          <div className="form-group" style={{ flex: 1, maxWidth: "300px" }}>
+            <label>Filter by Piece</label>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <select value={filterPieceId} onChange={(e) => setFilterPieceId(e.target.value)}>
+                <option value="">All pieces</option>
+                {pieces.map((p) => <option key={p.id} value={p.piece_id}>{p.piece_id}</option>)}
+              </select>
+              <button className="primary-button" type="button" onClick={loadPieceGates} disabled={!filterPieceId}>Filter</button>
+            </div>
           </div>
+        </div>
 
+        {error && <div className="form-message form-error">{error}</div>}
+
+        {gates.length === 0 && !error && (
+          <div className="state-message">No quality inspections recorded yet.</div>
         )}
 
-
-        {/* ------------------------------------------------
-            ERROR STATE
-        ------------------------------------------------ */}
-
-        {!loading && error && (
-
-          <div className="state-message error-message">
-            {error}
+        {gates.length > 0 && (
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Gate ID</th>
+                  <th>Piece</th>
+                  <th>Stage</th>
+                  <th>AI Verdict</th>
+                  <th>Defect</th>
+                  <th>Confidence</th>
+                  <th>Human Review</th>
+                  <th>Time</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gates.map((gate) => (
+                  <tr key={gate.id}>
+                    <td className="piece-id">GATE-{gate.id}</td>
+                    <td>{gate.piece_id}</td>
+                    <td>{gate.stage}</td>
+                    <td>{verdictBadge(gate.ai_verdict)}</td>
+                    <td>{gate.defect_type || "—"}</td>
+                    <td>{gate.confidence ? `${(gate.confidence * 100).toFixed(1)}%` : "—"}</td>
+                    <td>{gate.human_review ? verdictBadge(gate.human_review) : "—"}</td>
+                    <td>{new Date(gate.created_at).toLocaleString()}</td>
+                    <td>
+                      {!gate.human_review && gate.ai_verdict !== "PASS" && (
+                        <button
+                          className="primary-button"
+                          style={{ padding: "6px 12px", fontSize: "12px" }}
+                          onClick={() => setReviewGateId(gate.id)}
+                        >
+                          Review
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
         )}
-
-
-        {/* ------------------------------------------------
-            EMPTY STATE
-        ------------------------------------------------ */}
-
-        {!loading &&
-          !error &&
-          inspections.length === 0 && (
-
-            <div className="state-message">
-              No inspections have been uploaded yet.
-            </div>
-
-          )}
-
-
-        {/* ------------------------------------------------
-            INSPECTION CARDS
-        ------------------------------------------------ */}
-
-        {!loading &&
-          !error &&
-          inspections.length > 0 && (
-
-            <div className="inspection-grid">
-
-
-              {inspections.map((inspection) => (
-
-                <article
-                  className="inspection-card"
-                  key={inspection.id}
-                >
-
-
-                  {/* ----------------------------------------
-                      INSPECTION IMAGE
-                  ---------------------------------------- */}
-
-                  <div className="inspection-image-container">
-
-                    <img
-                      src={getBackendFileUrl(
-                        inspection.image_path
-                      )}
-                      alt={
-                        `Inspection for ${inspection.piece_id}`
-                      }
-                    />
-
-                  </div>
-
-
-                  {/* ----------------------------------------
-                      INSPECTION DETAILS
-                  ---------------------------------------- */}
-
-                  <div className="inspection-card-content">
-
-                    <div className="inspection-card-header">
-
-                      <div>
-
-                        <p className="inspection-piece-id">
-                          {inspection.piece_id}
-                        </p>
-
-                        <p className="inspection-inspector">
-                          Inspector:{" "}
-                          {inspection.inspector_id}
-                        </p>
-
-                      </div>
-
-
-                      <span className="inspection-status">
-
-                        {inspection.inspection_status}
-
-                      </span>
-
-                    </div>
-
-
-                    {/* --------------------------------------
-                        AI ANALYSIS RESULTS
-                    -------------------------------------- */}
-
-                    <div className="inspection-results">
-
-
-                      <div className="inspection-result">
-
-                        <span>
-                          Defect
-                        </span>
-
-                        <strong>
-
-                          {inspection.inspection_status ===
-                          "Pending AI Analysis"
-                            ? "Pending"
-                            : inspection.defect_detected
-                              ? "Detected"
-                              : "Not Detected"}
-
-                        </strong>
-
-                      </div>
-
-
-                      <div className="inspection-result">
-
-                        <span>
-                          Defect Type
-                        </span>
-
-                        <strong>
-
-                          {inspection.defect_type || "—"}
-
-                        </strong>
-
-                      </div>
-
-
-                      <div className="inspection-result">
-
-                        <span>
-                          Confidence
-                        </span>
-
-                        <strong>
-
-                          {formatConfidence(
-                            inspection.confidence
-                          )}
-
-                        </strong>
-
-                      </div>
-
-                    </div>
-
-
-                    {/* --------------------------------------
-                        TIMESTAMP
-                    -------------------------------------- */}
-
-                    <p className="inspection-timestamp">
-
-                      Uploaded:{" "}
-
-                      {formatTimestamp(
-                        inspection.created_at
-                      )}
-
-                    </p>
-
-                  </div>
-
-                </article>
-
-              ))}
-
-            </div>
-
-          )}
-
       </div>
 
+      {/* Review Modal */}
+      {reviewGateId && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+        }}>
+          <div style={{
+            background: "#fff", borderRadius: "14px", padding: "32px", maxWidth: "480px", width: "100%",
+            margin: "20px",
+          }}>
+            <h2 style={{ marginBottom: "16px" }}>Human Review — GATE-{reviewGateId}</h2>
+            <div className="form-group" style={{ marginBottom: "16px" }}>
+              <label>Verdict</label>
+              <select value={reviewVerdict} onChange={(e) => setReviewVerdict(e.target.value)}>
+                <option value="PASS">PASS — Accept piece</option>
+                <option value="FAIL">FAIL — Reject piece</option>
+              </select>
+            </div>
+            <div className="form-group" style={{ marginBottom: "16px" }}>
+              <label>Reviewer ID</label>
+              <select value={reviewerId} onChange={(e) => setReviewerId(e.target.value)}>
+                <option value="">Select reviewer</option>
+                {users.map((u) => <option key={u.id} value={u.operator_id}>{u.operator_id} — {u.name}</option>)}
+              </select>
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button className="primary-button" onClick={handleReviewSubmit} disabled={reviewSubmitting || !reviewerId}>
+                {reviewSubmitting ? "Submitting..." : "Submit Review"}
+              </button>
+              <button className="primary-button" style={{ background: "#eef2f8", color: "#3d485a" }} onClick={() => setReviewGateId(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
 
   );

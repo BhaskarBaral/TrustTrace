@@ -1,25 +1,16 @@
 """Module: routes/passport_routes.py"""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from database.connection import get_db
-from schemas.passport_schema import PassportResponse
-from services.passport_service import build_piece_passport
-
-
-# ---------------------------------------------------------
-# PASSPORT ROUTER CONFIGURATION
-# ---------------------------------------------------------
+from schemas.passport_schema import ComplianceReportResponse, PassportResponse
+from services.passport_service import build_compliance_report, build_piece_passport
 
 router = APIRouter(
     prefix="/api/passport",
     tags=["Digital Piece Passport"]
 )
 
-
-# ---------------------------------------------------------
-# GET DIGITAL PIECE PASSPORT
-# ---------------------------------------------------------
 
 @router.get(
     "/{piece_id}",
@@ -29,19 +20,7 @@ def get_piece_passport(
     piece_id: str,
     db: Session = Depends(get_db)
 ):
-
-    # -----------------------------------------------------
-    # BUILD PASSPORT
-    # -----------------------------------------------------
-
-    passport = build_piece_passport(
-        db=db,
-        piece_id=piece_id
-    )
-
-    # -----------------------------------------------------
-    # HANDLE UNKNOWN PIECE
-    # -----------------------------------------------------
+    passport = build_piece_passport(db=db, piece_id=piece_id)
 
     if passport is None:
         raise HTTPException(
@@ -49,8 +28,23 @@ def get_piece_passport(
             detail=f"Piece '{piece_id}' not found"
         )
 
-    # -----------------------------------------------------
-    # RETURN COMPLETE PASSPORT
-    # -----------------------------------------------------
-
     return passport
+
+
+@router.get(
+    "/{piece_id}/compliance",
+    response_model=ComplianceReportResponse
+)
+def get_compliance_report(
+    piece_id: str,
+    db: Session = Depends(get_db),
+):
+    report = build_compliance_report(db, piece_id)
+
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Piece '{piece_id}' not found"
+        )
+
+    return report

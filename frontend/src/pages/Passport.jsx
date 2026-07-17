@@ -1,182 +1,58 @@
-import { useEffect, useState } from "react";
-
-import {
-  getBackendFileUrl,
-  getPiecePassport,
-  getPieces,
-} from "../services/api";
-
-
-// ---------------------------------------------------------
-// DIGITAL PIECE PASSPORT PAGE
-// ---------------------------------------------------------
+import { useState } from "react";
+import { getComplianceReport, getPiecePassport, getPieces } from "../services/api";
 
 function Passport() {
-
-  // -------------------------------------------------------
-  // PAGE STATE
-  // -------------------------------------------------------
-
-  const [pieces, setPieces] = useState([]);
-  const [selectedPieceId, setSelectedPieceId] = useState("");
+  const [searchId, setSearchId] = useState("");
   const [passport, setPassport] = useState(null);
-
-  const [loadingPieces, setLoadingPieces] = useState(true);
-  const [loadingPassport, setLoadingPassport] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [pieceList, setPieceList] = useState([]);
+  const [compliance, setCompliance] = useState(null);
 
-
-  // -------------------------------------------------------
-  // LOAD REGISTERED PIECES
-  // -------------------------------------------------------
-
-  useEffect(() => {
-
-    async function loadPieces() {
-
-      try {
-
-        setLoadingPieces(true);
-        setError("");
-
-        const pieceData = await getPieces();
-
-        setPieces(pieceData);
-
-      } catch (error) {
-
-        console.error(
-          "Failed to load pieces:",
-          error
-        );
-
-        setError(error.message);
-
-      } finally {
-
-        setLoadingPieces(false);
-
-      }
-
-    }
-
-
-    loadPieces();
-
-  }, []);
-
-
-  // -------------------------------------------------------
-  // HANDLE PIECE SELECTION
-  // -------------------------------------------------------
-
-  function handlePieceChange(event) {
-
-    setSelectedPieceId(event.target.value);
-
-    setPassport(null);
-
-    setError("");
-
-  }
-
-
-  // -------------------------------------------------------
-  // LOAD DIGITAL PASSPORT
-  // -------------------------------------------------------
-
-  async function handleLoadPassport(event) {
-
-    event.preventDefault();
-
-
-    if (!selectedPieceId) {
-
-      setError(
-        "Please select a jewellery piece."
-      );
-
-      return;
-
-    }
-
-
+  async function loadPieceList() {
     try {
+      const pieces = await getPieces();
+      setPieceList(pieces);
+    } catch {}
+  }
 
-      setLoadingPassport(true);
+  async function handleSearch(e) {
+    e.preventDefault();
+    if (!searchId.trim()) return;
+    try {
+      setLoading(true);
       setError("");
-
-
-      const passportData =
-        await getPiecePassport(selectedPieceId);
-
-
-      setPassport(passportData);
-
-    } catch (error) {
-
-      console.error(
-        "Failed to load digital passport:",
-        error
-      );
-
+      setCompliance(null);
+      const data = await getPiecePassport(searchId.trim());
+      setPassport(data);
+    } catch (err) {
+      setError(err.message);
       setPassport(null);
-
-      setError(error.message);
-
     } finally {
-
-      setLoadingPassport(false);
-
+      setLoading(false);
     }
-
   }
 
-
-  // -------------------------------------------------------
-  // FORMAT TIMESTAMP
-  // -------------------------------------------------------
-
-  function formatTimestamp(timestamp) {
-
-    if (!timestamp) {
-      return "—";
+  async function handleFetchCompliance() {
+    if (!passport) return;
+    try {
+      const report = await getComplianceReport(passport.piece.piece_id);
+      setCompliance(report);
+    } catch (err) {
+      setError(err.message);
     }
-
-    return new Date(timestamp).toLocaleString();
-
   }
 
-
-  // -------------------------------------------------------
-  // FORMAT CONFIDENCE
-  // -------------------------------------------------------
-
-  function formatConfidence(confidence) {
-
-    if (
-      confidence === null ||
-      confidence === undefined
-    ) {
-      return "—";
-    }
-
-
-    const confidenceValue =
-      confidence <= 1
-        ? confidence * 100
-        : confidence;
-
-
-    return `${confidenceValue.toFixed(1)}%`;
-
+  function stageIcon(stage) {
+    const s = stage.toLowerCase();
+    if (s.includes("registered")) return "📋";
+    if (s.includes("cast")) return "🔥";
+    if (s.includes("fil")) return "🔧";
+    if (s.includes("stone") || s.includes("set")) return "💎";
+    if (s.includes("polish")) return "✨";
+    if (s.includes("plat")) return "🪞";
+    return "⚙️";
   }
-
-
-  // -------------------------------------------------------
-  // PAGE UI
-  // -------------------------------------------------------
 
   return (
 
@@ -194,558 +70,317 @@ function Passport() {
         </p>
 
         <h1>Digital Piece Passport</h1>
-
-        <p>
-          View the complete production and inspection
-          history of a registered jewellery piece.
-        </p>
-
+        <p>Search for any jewellery piece and view its complete traceability history, weight logs, quality gates, and export EU compliance reports.</p>
       </div>
 
-
-      {/* --------------------------------------------------
-          PIECE SEARCH SECTION
-      -------------------------------------------------- */}
-
+      {/* Search */}
       <div className="content-section">
-
         <div className="section-header">
-
           <div>
-
-            <h2>Find Piece Passport</h2>
-
-            <p>
-              Select a registered jewellery piece to view
-              its complete traceability record.
-            </p>
-
+            <h2>Search Piece</h2>
+            <p>Enter a piece ID (e.g. TT-000001) or select from the list.</p>
           </div>
-
         </div>
 
-
-        <form
-          className="passport-search-form"
-          onSubmit={handleLoadPassport}
-        >
-
-          <div className="form-group">
-
-            <label htmlFor="passport-piece">
-              Jewellery Piece
-            </label>
-
-            <select
-              id="passport-piece"
-              value={selectedPieceId}
-              onChange={handlePieceChange}
-              required
-            >
-
-              <option value="">
-                Select a piece
-              </option>
-
-
-              {pieces.map((piece) => (
-
-                <option
-                  key={piece.id}
-                  value={piece.piece_id}
-                >
-                  {piece.piece_id} — {piece.product_type}
-                </option>
-
-              ))}
-
-            </select>
-
+        <form onSubmit={handleSearch} style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+          <div className="form-group" style={{ flex: 1 }}>
+            <input
+              type="text"
+              placeholder="Enter piece ID (e.g. TT-000001)"
+              value={searchId}
+              onChange={(e) => setSearchId(e.target.value)}
+              list="piece-suggestions"
+            />
+            <datalist id="piece-suggestions">
+              {pieceList.map((p) => <option key={p.id} value={p.piece_id}>{p.product_type}</option>)}
+            </datalist>
           </div>
-
-
-          <button
-            className="primary-button"
-            type="submit"
-            disabled={
-              loadingPieces ||
-              loadingPassport ||
-              pieces.length === 0
-            }
-          >
-
-            {loadingPassport
-              ? "Loading Passport..."
-              : "View Passport"}
-
+          <button className="primary-button" type="submit" disabled={loading} onFocus={loadPieceList} onClick={loadPieceList}>
+            {loading ? "Loading..." : "View Passport"}
           </button>
-
         </form>
-
-
-        {/* ------------------------------------------------
-            ERROR MESSAGE
-        ------------------------------------------------ */}
-
-        {error && (
-
-          <div className="form-message form-error">
-            {error}
-          </div>
-
-        )}
-
       </div>
 
+      {error && <div className="form-message form-error" style={{ marginTop: "16px" }}>{error}</div>}
 
-      {/* --------------------------------------------------
-          DIGITAL PASSPORT
-      -------------------------------------------------- */}
-
+      {/* Passport Display */}
       {passport && (
+        <>
+          {/* AI Summary */}
+          {passport.ai_summary && (
+            <div className="content-section" style={{ background: "#f0f5ff", borderColor: "#c8d9f5" }}>
+              <div className="section-header">
+                <div>
+                  <h2 style={{ color: "#1a4a8a" }}>🤖 AI Analysis</h2>
+                  <p>Intelligent assessment generated by Llama 4 Scout vision model.</p>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {passport.ai_summary.piece_overview && (
+                  <div style={{ padding: "14px", background: "#fff", borderRadius: "10px", border: "1px solid #d9e5f5" }}>
+                    <p style={{ fontSize: "13px", fontWeight: 700, color: "#1a4a8a", marginBottom: "4px" }}>Piece Overview</p>
+                    <p style={{ fontSize: "14px", color: "#3d485a", lineHeight: 1.6 }}>{passport.ai_summary.piece_overview}</p>
+                  </div>
+                )}
+                {passport.ai_summary.quality_summary && (
+                  <div style={{ padding: "14px", background: "#fff", borderRadius: "10px", border: "1px solid #d9e5f5" }}>
+                    <p style={{ fontSize: "13px", fontWeight: 700, color: "#1a4a8a", marginBottom: "4px" }}>Quality Assessment</p>
+                    <p style={{ fontSize: "14px", color: "#3d485a", lineHeight: 1.6 }}>{passport.ai_summary.quality_summary}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
-        <div className="passport-container">
-
-
-          {/* ------------------------------------------------
-              PASSPORT HEADER
-          ------------------------------------------------ */}
-
-          <div className="passport-header">
-
-            <div>
-
-              <p className="passport-label">
-                TRUSTTRACE DIGITAL PASSPORT
-              </p>
-
-              <h2>
-                {passport.piece.piece_id}
-              </h2>
-
-              <p>
-                Complete manufacturing and quality
-                traceability record.
-              </p>
-
+          {/* Piece Info */}
+          <div className="content-section">
+            <div className="section-header">
+              <div>
+                <h2>{passport.piece.piece_id}</h2>
+                <p>{passport.piece.product_type} — {passport.piece.material}</p>
+              </div>
+              <div>
+                <span className="status-badge">{passport.piece.status}</span>
+                <span className="role-badge" style={{ marginLeft: "8px" }}>{passport.piece.current_stage}</span>
+              </div>
             </div>
 
+            {passport.batch && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginTop: "16px" }}>
+                <div className="form-group">
+                  <label>Batch</label>
+                  <input readOnly value={passport.batch.batch_id} />
+                </div>
+                <div className="form-group">
+                  <label>Gold Lot</label>
+                  <input readOnly value={passport.batch.gold_lot || "—"} />
+                </div>
+                <div className="form-group">
+                  <label>Alloy Batch</label>
+                  <input readOnly value={passport.batch.alloy_batch || "—"} />
+                </div>
+                <div className="form-group">
+                  <label>Stone Parcel</label>
+                  <input readOnly value={passport.batch.stone_parcel || "—"} />
+                </div>
+              </div>
+            )}
 
-            <span className="status-badge">
-              {passport.piece.status}
-            </span>
-
+            <div style={{ marginTop: "16px" }}>
+              <button className="primary-button" onClick={handleFetchCompliance}>
+                Export EU DPP Compliance Report
+              </button>
+            </div>
           </div>
 
-
-          {/* ------------------------------------------------
-              PIECE DETAILS
-          ------------------------------------------------ */}
-
-          <div className="passport-section">
-
+          {/* Production Chain */}
+          <div className="content-section">
             <div className="section-header">
-
               <div>
-
-                <h2>Piece Details</h2>
-
-                <p>
-                  Core identification and production status.
-                </p>
-
+                <h2>Production Chain</h2>
+                <p>Every manufacturing stage this piece passed through, with operators and weights.</p>
               </div>
-
+              <div className="record-count">{passport.production_history.length} Events</div>
             </div>
-
-
-            <div className="passport-details-grid">
-
-
-              <div className="passport-detail">
-
-                <span>
-                  Piece ID
-                </span>
-
-                <strong>
-                  {passport.piece.piece_id}
-                </strong>
-
-              </div>
-
-
-              <div className="passport-detail">
-
-                <span>
-                  Product Type
-                </span>
-
-                <strong>
-                  {passport.piece.product_type}
-                </strong>
-
-              </div>
-
-
-              <div className="passport-detail">
-
-                <span>
-                  Material
-                </span>
-
-                <strong>
-                  {passport.piece.material}
-                </strong>
-
-              </div>
-
-
-              <div className="passport-detail">
-
-                <span>
-                  Current Stage
-                </span>
-
-                <strong>
-                  {passport.piece.current_stage}
-                </strong>
-
-              </div>
-
-
-              <div className="passport-detail">
-
-                <span>
-                  Status
-                </span>
-
-                <strong>
-                  {passport.piece.status}
-                </strong>
-
-              </div>
-
-
-              <div className="passport-detail">
-
-                <span>
-                  Registered
-                </span>
-
-                <strong>
-                  {formatTimestamp(
-                    passport.piece.created_at
-                  )}
-                </strong>
-
-              </div>
-
-
-            </div>
-
-          </div>
-
-
-          {/* ------------------------------------------------
-              PRODUCTION HISTORY
-          ------------------------------------------------ */}
-
-          <div className="passport-section">
-
-            <div className="section-header">
-
-              <div>
-
-                <h2>Production History</h2>
-
-                <p>
-                  Manufacturing events recorded for this
-                  jewellery piece.
-                </p>
-
-              </div>
-
-
-              <div className="record-count">
-
-                {passport.production_history.length}{" "}
-
-                {passport.production_history.length === 1
-                  ? "Event"
-                  : "Events"}
-
-              </div>
-
-            </div>
-
 
             {passport.production_history.length === 0 ? (
-
-              <div className="state-message">
-                No production events recorded.
-              </div>
-
+              <div className="state-message">No production events recorded yet.</div>
             ) : (
-
               <div className="table-container">
-
                 <table className="data-table">
-
                   <thead>
-
                     <tr>
-                      <th>Operator</th>
                       <th>Stage</th>
-                      <th>Event Type</th>
+                      <th>Operator</th>
+                      <th>Event</th>
+                      <th>Weight In (g)</th>
+                      <th>Weight Out (g)</th>
                       <th>Notes</th>
                       <th>Timestamp</th>
                     </tr>
-
                   </thead>
-
-
                   <tbody>
-
-                    {passport.production_history.map(
-                      (productionEvent) => (
-
-                        <tr key={productionEvent.id}>
-
-                          <td>
-                            {productionEvent.operator_id}
-                          </td>
-
-                          <td>
-                            {productionEvent.stage}
-                          </td>
-
-                          <td>
-
-                            <span className="event-badge">
-
-                              {productionEvent.event_type}
-
-                            </span>
-
-                          </td>
-
-                          <td>
-                            {productionEvent.notes || "—"}
-                          </td>
-
-                          <td>
-
-                            {formatTimestamp(
-                              productionEvent.timestamp
-                            )}
-
-                          </td>
-
-                        </tr>
-
-                      )
-                    )}
-
+                    {passport.production_history.map((ev) => (
+                      <tr key={ev.id}>
+                        <td><span style={{ fontWeight: 600 }}>{stageIcon(ev.stage)} {ev.stage}</span></td>
+                        <td>{ev.operator_id}</td>
+                        <td><span className="event-badge">{ev.event_type}</span></td>
+                        <td>{ev.weight_in ?? "—"}</td>
+                        <td>{ev.weight_out ?? "—"}</td>
+                        <td>{ev.notes || "—"}</td>
+                        <td>{new Date(ev.timestamp).toLocaleString()}</td>
+                      </tr>
+                    ))}
                   </tbody>
-
                 </table>
-
               </div>
-
             )}
-
           </div>
 
-
-          {/* ------------------------------------------------
-              INSPECTION HISTORY
-          ------------------------------------------------ */}
-
-          <div className="passport-section">
-
-            <div className="section-header">
-
-              <div>
-
-                <h2>Inspection History</h2>
-
-                <p>
-                  Quality inspection records and AI
-                  analysis results.
-                </p>
-
+          {/* Weight Logs */}
+          {passport.weight_logs && passport.weight_logs.length > 0 && (
+            <div className="content-section">
+              <div className="section-header">
+                <div>
+                  <h2>Gold Weight Tracking</h2>
+                  <p>Stage-wise weight logs with variance analysis.</p>
+                </div>
               </div>
-
-
-              <div className="record-count">
-
-                {passport.inspections.length}{" "}
-
-                {passport.inspections.length === 1
-                  ? "Inspection"
-                  : "Inspections"}
-
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Stage</th>
+                      <th>Weight In (g)</th>
+                      <th>Weight Out (g)</th>
+                      <th>Expected (g)</th>
+                      <th>Variance (g)</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {passport.weight_logs.map((log) => (
+                      <tr key={log.id}>
+                        <td><span style={{ fontWeight: 600 }}>{log.stage}</span></td>
+                        <td>{log.weight_in}</td>
+                        <td>{log.weight_out}</td>
+                        <td>{log.expected_weight ?? "—"}</td>
+                        <td style={{ color: (log.variance ?? 0) < 0 ? "#b14343" : "#287a50" }}>
+                          {log.variance != null ? `${log.variance.toFixed(2)}` : "—"}
+                        </td>
+                        <td>{new Date(log.timestamp).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-
             </div>
+          )}
 
-
-            {passport.inspections.length === 0 ? (
-
-              <div className="state-message">
-                No inspections recorded.
+          {/* Quality Gates */}
+          {passport.quality_gates && passport.quality_gates.length > 0 && (
+            <div className="content-section">
+              <div className="section-header">
+                <div>
+                  <h2>Quality Gates</h2>
+                  <p>AI inspection results and human review status at each checkpoint.</p>
+                </div>
               </div>
-
-            ) : (
-
-              <div className="passport-inspection-grid">
-
-
-                {passport.inspections.map(
-                  (inspection) => (
-
-                    <article
-                      className="passport-inspection-card"
-                      key={inspection.id}
-                    >
-
-
-                      {/* ------------------------------------
-                          INSPECTION IMAGE
-                      ------------------------------------ */}
-
-                      <div className="passport-inspection-image">
-
-                        <img
-                          src={getBackendFileUrl(
-                            inspection.image_path
-                          )}
-                          alt={
-                            `Inspection for ${inspection.piece_id}`
-                          }
-                        />
-
-                      </div>
-
-
-                      {/* ------------------------------------
-                          INSPECTION INFORMATION
-                      ------------------------------------ */}
-
-                      <div className="passport-inspection-content">
-
-
-                        <div className="passport-inspection-header">
-
-                          <div>
-
-                            <p>
-                              Inspector
-                            </p>
-
-                            <strong>
-                              {inspection.inspector_id}
-                            </strong>
-
-                          </div>
-
-
-                          <span className="inspection-status">
-
-                            {inspection.inspection_status}
-
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Stage</th>
+                      <th>AI Verdict</th>
+                      <th>Defect</th>
+                      <th>Confidence</th>
+                      <th>Human Review</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {passport.quality_gates.map((gate) => (
+                      <tr key={gate.id}>
+                        <td>{gate.stage}</td>
+                        <td>
+                          <span className="role-badge" style={{
+                            background: gate.ai_verdict === "PASS" ? "#edf7f1" : gate.ai_verdict === "FLAG" ? "#fef9ee" : "#fff5f5",
+                            color: gate.ai_verdict === "PASS" ? "#287a50" : gate.ai_verdict === "FLAG" ? "#b8891d" : "#b14343",
+                          }}>
+                            {gate.ai_verdict}
                           </span>
-
-                        </div>
-
-
-                        <div className="passport-inspection-results">
-
-
-                          <div>
-
-                            <span>
-                              Defect
-                            </span>
-
-                            <strong>
-
-                              {inspection.inspection_status ===
-                              "Pending AI Analysis"
-                                ? "Pending"
-                                : inspection.defect_detected
-                                  ? "Detected"
-                                  : "Not Detected"}
-
-                            </strong>
-
-                          </div>
-
-
-                          <div>
-
-                            <span>
-                              Defect Type
-                            </span>
-
-                            <strong>
-                              {inspection.defect_type || "—"}
-                            </strong>
-
-                          </div>
-
-
-                          <div>
-
-                            <span>
-                              Confidence
-                            </span>
-
-                            <strong>
-
-                              {formatConfidence(
-                                inspection.confidence
-                              )}
-
-                            </strong>
-
-                          </div>
-
-
-                        </div>
-
-
-                        <p className="inspection-timestamp">
-
-                          Inspected:{" "}
-
-                          {formatTimestamp(
-                            inspection.created_at
-                          )}
-
-                        </p>
-
-
-                      </div>
-
-                    </article>
-
-                  )
-                )}
-
-
+                        </td>
+                        <td>{gate.defect_type || "—"}</td>
+                        <td>{gate.confidence ? `${(gate.confidence * 100).toFixed(1)}%` : "—"}</td>
+                        <td>{gate.human_review || "—"}</td>
+                        <td>{new Date(gate.created_at).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-
-            )}
-
-          </div>
-
-
-        </div>
-
+            </div>
+          )}
+        </>
       )}
 
+      {/* Compliance Report Modal */}
+      {compliance && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+        }}>
+          <div style={{
+            background: "#fff", borderRadius: "14px", padding: "32px", maxWidth: "700px", width: "100%",
+            margin: "20px", maxHeight: "80vh", overflow: "auto",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h2>EU DPP Compliance Report</h2>
+              <button className="primary-button" style={{ background: "#eef2f8", color: "#3d485a", padding: "8px 14px" }} onClick={() => setCompliance(null)}>Close</button>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div className="form-group"><label>Piece ID</label><input readOnly value={compliance.piece_id} /></div>
+              <div className="form-group"><label>Product Type</label><input readOnly value={compliance.product_type} /></div>
+              <div className="form-group"><label>Material</label><input readOnly value={compliance.material} /></div>
+              <div className="form-group"><label>Gold Lot</label><input readOnly value={compliance.gold_lot || "—"} /></div>
+              <div className="form-group"><label>Alloy Batch</label><input readOnly value={compliance.alloy_batch || "—"} /></div>
+              <div className="form-group"><label>Stone Parcel</label><input readOnly value={compliance.stone_parcel || "—"} /></div>
+              <div className="form-group"><label>Created</label><input readOnly value={compliance.created_at ? new Date(compliance.created_at).toLocaleString() : "—"} /></div>
+              <div className="form-group"><label>Completed</label><input readOnly value={compliance.completed_at ? new Date(compliance.completed_at).toLocaleString() : "—"} /></div>
+            </div>
+
+            <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>Operator Chain</h3>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {compliance.operator_chain.map((op, i) => (
+                <span key={i} className="role-badge">{op}</span>
+              ))}
+            </div>
+
+            <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>Manufacturing Stages</h3>
+            <pre style={{ background: "#f5f7fa", padding: "12px", borderRadius: "8px", fontSize: "12px", overflow: "auto" }}>
+              {JSON.stringify(compliance.manufacturing_stages, null, 2)}
+            </pre>
+
+            <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>Quality Results</h3>
+            <pre style={{ background: "#f5f7fa", padding: "12px", borderRadius: "8px", fontSize: "12px", overflow: "auto" }}>
+              {JSON.stringify(compliance.quality_results, null, 2)}
+            </pre>
+
+            {compliance.ai_narrative && (
+              <>
+                <h3 style={{ marginTop: "20px", marginBottom: "10px", color: "#1a4a8a" }}>🤖 AI Compliance Narrative</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {compliance.ai_narrative.provenance_summary && (
+                    <div style={{ padding: "12px", background: "#f0f5ff", borderRadius: "8px", border: "1px solid #d9e5f5" }}>
+                      <p style={{ fontSize: "12px", fontWeight: 700, color: "#1a4a8a", marginBottom: "4px" }}>Provenance Summary</p>
+                      <p style={{ fontSize: "13px", color: "#3d485a" }}>{compliance.ai_narrative.provenance_summary}</p>
+                    </div>
+                  )}
+                  {compliance.ai_narrative.risk_assessment && (
+                    <div style={{ padding: "12px", background: "#fff5f5", borderRadius: "8px", border: "1px solid #f0cccc" }}>
+                      <p style={{ fontSize: "12px", fontWeight: 700, color: "#b14343", marginBottom: "4px" }}>Risk Assessment</p>
+                      <p style={{ fontSize: "13px", color: "#3d485a" }}>{compliance.ai_narrative.risk_assessment}</p>
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    {compliance.ai_narrative.compliance_verdict && (
+                      <span className="role-badge" style={{
+                        background: compliance.ai_narrative.compliance_verdict === "COMPLIANT" ? "#edf7f1" : compliance.ai_narrative.compliance_verdict === "MINOR_ISSUES" ? "#fef9ee" : "#fff5f5",
+                        color: compliance.ai_narrative.compliance_verdict === "COMPLIANT" ? "#287a50" : compliance.ai_narrative.compliance_verdict === "MINOR_ISSUES" ? "#b8891d" : "#b14343",
+                        fontSize: "13px", padding: "8px 14px",
+                      }}>
+                        {compliance.ai_narrative.compliance_verdict}
+                      </span>
+                    )}
+                    <span className="record-count">AI-Generated Analysis</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </section>
 
   );
