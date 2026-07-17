@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -7,11 +8,20 @@ from sqlalchemy import text
 
 from database.connection import Base, engine
 from database import models
+
+# Load environment variables from .env file
+load_dotenv()
+
+from routes.analytics_routes import router as analytics_router
+from routes.auth_routes import router as auth_router
+from routes.batch_routes import router as batch_router
 from routes.event_routes import router as event_router
 from routes.inspection_routes import router as inspection_router
 from routes.passport_routes import router as passport_router
 from routes.piece_routes import router as piece_router
+from routes.quality_routes import router as quality_router
 from routes.user_routes import router as user_router
+from routes.weight_routes import router as weight_router
 
 
 # ---------------------------------------------------------
@@ -82,6 +92,11 @@ app.include_router(user_router)
 app.include_router(event_router)
 app.include_router(inspection_router)
 app.include_router(passport_router)
+app.include_router(batch_router)
+app.include_router(quality_router)
+app.include_router(weight_router)
+app.include_router(analytics_router)
+app.include_router(auth_router)
 
 
 # ---------------------------------------------------------
